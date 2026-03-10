@@ -33,4 +33,6 @@ public class ClassEntity {
     @OneToMany(mappedBy = "schoolClass", fetch = FetchType.LAZY)
     Set<StudentEntity> students = new HashSet<>();
 
+    @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    Set<ScheduleEntity> schedules = new HashSet<>();
 }
