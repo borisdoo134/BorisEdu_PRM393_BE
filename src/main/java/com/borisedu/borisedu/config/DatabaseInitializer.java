@@ -6,13 +6,14 @@ import com.borisedu.borisedu.utils.enums.DayOfWeekEnum;
 import com.borisedu.borisedu.utils.enums.GenderEnum;
 import com.borisedu.borisedu.utils.enums.RoleEnum;
 import com.borisedu.borisedu.utils.enums.StatusEnum;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -21,30 +22,18 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DatabaseInitializer  implements CommandLineRunner {
 
     private final UserRepo userRepo;
     private final StudentRepo studentRepo;
     private final ClassRepo classRepo;
     private final RoleRepo roleRepo;
-    private final JwtEncoder jwtEncoder;
     private final PasswordEncoder passwordEncoder;
     private final ScheduleRepo scheduleRepo;
     private final SubjectRepo subjectRepo;
+    private final ExamScheduleRepo examScheduleRepo;
 
-    public DatabaseInitializer(UserRepo userRepo,
-                               StudentRepo studentRepo,
-                               ClassRepo classRepo,
-                               RoleRepo roleRepo, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder, ScheduleRepo scheduleRepo, SubjectRepo subjectRepo) {
-        this.userRepo = userRepo;
-        this.studentRepo = studentRepo;
-        this.classRepo = classRepo;
-        this.roleRepo = roleRepo;
-        this.jwtEncoder = jwtEncoder;
-        this.passwordEncoder = passwordEncoder;
-        this.scheduleRepo = scheduleRepo;
-        this.subjectRepo = subjectRepo;
-    }
 
     @Override
     @Transactional
@@ -259,6 +248,59 @@ public class DatabaseInitializer  implements CommandLineRunner {
 
             scheduleRepo.saveAll(allSchedules);
             System.out.println("✅ Đã tạo thành công Thời khóa biểu (Có Giáo Viên và Phòng Học) cho " + allClasses.size() + " lớp học!");
+        }
+
+        // 6. SINH DỮ LIỆU EXAM SCHEDULE (LỊCH THI)
+        if (examScheduleRepo.count() == 0) {
+            List<ClassEntity> allClasses = classRepo.findAll();
+            List<SubjectEntity> allSubjects = subjectRepo.findAll();
+            List<ExamScheduleEntity> allExams = new ArrayList<>();
+
+            // Lấy ra 3 môn học giống trong thiết kế của bạn (Nếu không tìm thấy tên chính xác thì lấy đại 3 môn đầu tiên)
+            SubjectEntity english = allSubjects.stream().filter(s -> s.getName().equals("Tiếng Anh")).findFirst().orElse(allSubjects.get(0));
+            SubjectEntity math = allSubjects.stream().filter(s -> s.getName().equals("Toán")).findFirst().orElse(allSubjects.get(1));
+            SubjectEntity literature = allSubjects.stream().filter(s -> s.getName().equals("Ngữ Văn")).findFirst().orElse(allSubjects.get(2));
+
+            LocalDate today = LocalDate.now();
+
+            for (ClassEntity clazz : allClasses) {
+                // 1. Bài thi số 1: Đã thi xong (Cách đây 5 ngày)
+                ExamScheduleEntity exam1 = new ExamScheduleEntity();
+                exam1.setSchoolClass(clazz);
+                exam1.setSubject(english);
+                exam1.setExamType("Kiểm tra giữa kì");
+                exam1.setExamDate(today.minusDays(5));
+                exam1.setStartTime(LocalTime.of(8, 0));
+                exam1.setEndTime(LocalTime.of(8, 45));
+                exam1.setRoom("Phòng " + clazz.getClassName()); // Thi tại lớp
+                allExams.add(exam1);
+
+                // 2. Bài thi số 2: Sắp diễn ra (Trùng khớp ngày 06/04/2026 và phòng Delta 403 như thiết kế)
+                ExamScheduleEntity exam2 = new ExamScheduleEntity();
+                exam2.setSchoolClass(clazz);
+                exam2.setSubject(math);
+                exam2.setExamType("Kiểm tra cuối");
+                exam2.setExamDate(LocalDate.of(2026, 4, 6));
+                exam2.setStartTime(LocalTime.of(9, 0));
+                exam2.setEndTime(LocalTime.of(9, 45));
+                exam2.setRoom("Delta, Phòng 403");
+                allExams.add(exam2);
+
+                // 3. Bài thi số 3: Tương lai gần (Tuần sau)
+                ExamScheduleEntity exam3 = new ExamScheduleEntity();
+                exam3.setSchoolClass(clazz);
+                exam3.setSubject(literature);
+                exam3.setExamType("Kiểm tra cuối");
+                exam3.setExamDate(today.plusDays(7));
+                exam3.setStartTime(LocalTime.of(9, 0));
+                exam3.setEndTime(LocalTime.of(9, 45));
+                exam3.setRoom("Delta, Phòng 403");
+                allExams.add(exam3);
+            }
+
+            // Lưu toàn bộ lịch thi vào Database
+            examScheduleRepo.saveAll(allExams);
+            System.out.println("✅ Đã tạo thành công Lịch thi mẫu cho " + allClasses.size() + " lớp học!");
         }
 
     }
