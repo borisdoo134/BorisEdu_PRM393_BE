@@ -34,6 +34,9 @@ public class ScheduleEntity {
     @Column(name = "end_time")
     LocalTime endTime;
 
+    @Column(name = "room", length = 50)
+    String room;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
     ClassEntity schoolClass;
@@ -42,5 +45,9 @@ public class ScheduleEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
     SubjectEntity subject;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id")
+    UserEntity teacher;
 
 }

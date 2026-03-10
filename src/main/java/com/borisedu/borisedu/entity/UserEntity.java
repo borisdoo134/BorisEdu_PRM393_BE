@@ -42,6 +42,9 @@ public class UserEntity {
     @Column(name = "phone", length = 15, unique = true)
     String phone;
 
+    @Column(name = "avatar_url")
+    String avatarUrl;
+
     @Column(name = "refresh_token")
     String refreshToken;
 

@@ -37,7 +37,7 @@ public class AuthenticationEntryPointCustom implements AuthenticationEntryPoint 
 
         ApiResponse<Void> apiResponse = BuildResponse.buildApiResponse(
                 HttpStatus.UNAUTHORIZED.value(),
-                "Sai email hoặc mật khẩu!",
+                "Không xác minh được danh tính!",
                 errorMessage,
                 null
         );
