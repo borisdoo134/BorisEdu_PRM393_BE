@@ -24,10 +24,6 @@ public class StudentResponse {
 
     String lastName;
 
-    String className; // Ví dụ: Lớp 5A
-
-    String schoolName; // Ví dụ: TH Chu Văn An
-
     Instant dateOfBirth;
 
     String address; // Địa chỉ (Hà Nội)
@@ -45,5 +41,7 @@ public class StudentResponse {
     StatusEnum status;
 
     String avatarUrl;
+
+    ClassResponse schoolClass;
 
 }

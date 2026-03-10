@@ -62,7 +62,7 @@ public class AuthServiceHelper {
         UserResponse newUserResponse = modelMapper.map(newAccount, UserResponse.class);
         newUserResponse.setRoles(roleResponses);
 
-        Instant now = Instant.now();
+        Instant now = Instant .now();
         Instant expireAt = now.plusSeconds(securityUtil.accessTokenExpiration);
         return BuildResponse.buildLoginResponse(newUserResponse, accessToken, expireAt, refreshToken);
     }

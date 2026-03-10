@@ -25,45 +25,43 @@ public class StudentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "first-name")
+    @Column(name = "first_name")
     String firstName;
 
-    @Column(name = "middle-name")
+    @Column(name = "middle_name")
     String middleName;
 
-    @Column(name = "last-name")
+    @Column(name = "last_name")
     String lastName;
 
-    @Column(name = "class-name")
-    String className; // Ví dụ: Lớp 5A
+    @Column(name = "date_of_birth")
+    Instant dateOfBirth;
 
-    @Column(name = "school-name")
-    String schoolName; // Ví dụ: TH Chu Văn An
-
-    @Column(name = "date-of-birth")
-    Instant dateOfBirth; // Ngày sinh (25/02/2026)
-
-    String address; // Địa chỉ (Hà Nội)
+    String address;
 
     @Enumerated(EnumType.STRING)
     GenderEnum gender;
 
     String phone;
 
-    @Column(name = "father-name")
+    @Column(name = "father_name")
     String fatherName;
 
-    @Column(name = "mother-name")
+    @Column(name = "mother_name")
     String motherName;
 
     @Enumerated(EnumType.STRING)
     StatusEnum status;
 
-    @Column(name = "avatar-url")
+    @Column(name = "avatar_url")
     String avatarUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id") // Tạo thẳng 1 cột parent_id trong bảng students
     UserEntity parent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id") // Tạo cột class_id trong bảng students
+    ClassEntity schoolClass;
 
 }

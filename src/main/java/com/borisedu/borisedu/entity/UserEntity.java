@@ -30,19 +30,19 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     String email;
 
-    @Column(name = "first-name")
+    @Column(name = "first_name")
     String firstName;
 
-    @Column(name = "middle-name")
+    @Column(name = "middle_name")
     String middleName;
 
-    @Column(name = "last-name")
+    @Column(name = "last_name")
     String lastName;
 
     @Column(name = "phone", length = 15, unique = true)
     String phone;
 
-    @Column(name = "refresh-token")
+    @Column(name = "refresh_token")
     String refreshToken;
 
     @ManyToMany(fetch = FetchType.EAGER)
