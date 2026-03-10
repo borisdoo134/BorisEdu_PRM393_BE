@@ -2,10 +2,7 @@ package com.borisedu.borisedu.config;
 
 import com.borisedu.borisedu.entity.*;
 import com.borisedu.borisedu.repository.*;
-import com.borisedu.borisedu.utils.enums.DayOfWeekEnum;
-import com.borisedu.borisedu.utils.enums.GenderEnum;
-import com.borisedu.borisedu.utils.enums.RoleEnum;
-import com.borisedu.borisedu.utils.enums.StatusEnum;
+import com.borisedu.borisedu.utils.enums.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +15,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -33,6 +31,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
     private final ScheduleRepo scheduleRepo;
     private final SubjectRepo subjectRepo;
     private final ExamScheduleRepo examScheduleRepo;
+    private final AttendanceRepo attendanceRepo;
 
 
     @Override
@@ -301,6 +300,63 @@ public class DatabaseInitializer  implements CommandLineRunner {
             // Lưu toàn bộ lịch thi vào Database
             examScheduleRepo.saveAll(allExams);
             System.out.println("✅ Đã tạo thành công Lịch thi mẫu cho " + allClasses.size() + " lớp học!");
+        }
+
+        // 7. SINH DỮ LIỆU ĐIỂM DANH (ATTENDANCE)
+        if (attendanceRepo.count() == 0) {
+            List<StudentEntity> allStudents = studentRepo.findAll();
+            List<ScheduleEntity> allSchedules = scheduleRepo.findAll();
+            List<AttendanceEntity> allAttendances = new ArrayList<>();
+            Random random = new Random();
+
+            // Mốc thời gian: Lấy từ 8 tuần trước (khoảng giữa tháng 1/2026) cho đến ngày hôm nay
+            LocalDate today = LocalDate.now();
+            LocalDate startDate = today.minusWeeks(8);
+
+            // Gom nhóm thời khóa biểu theo ID của Lớp để truy xuất cho nhanh
+            Map<Long, List<ScheduleEntity>> schedulesByClass = allSchedules.stream()
+                    .collect(Collectors.groupingBy(s -> s.getSchoolClass().getId()));
+
+            for (StudentEntity student : allStudents) {
+                if (student.getSchoolClass() == null) continue;
+
+                List<ScheduleEntity> classSchedules = schedulesByClass.get(student.getSchoolClass().getId());
+                if (classSchedules == null || classSchedules.isEmpty()) continue;
+
+                // Chạy vòng lặp qua từng ngày trong suốt 8 tuần qua
+                for (LocalDate date = startDate; !date.isAfter(today); date = date.plusDays(1)) {
+
+                    // Chuyển java.time.DayOfWeek sang định dạng String để so khớp với Enum của bạn
+                    String currentDayName = date.getDayOfWeek().name();
+
+                    // Lọc ra các tiết học của lớp bé này trong cái Thứ đó (VD: Lấy các tiết Thứ 2)
+                    List<ScheduleEntity> schedulesToday = classSchedules.stream()
+                            .filter(s -> s.getDayOfWeek().name().equals(currentDayName))
+                            .collect(Collectors.toList());
+
+                    // Tạo bản ghi điểm danh cho từng tiết học
+                    for (ScheduleEntity schedule : schedulesToday) {
+                        AttendanceEntity attendance = new AttendanceEntity();
+                        attendance.setStudent(student);
+                        attendance.setSchedule(schedule);
+                        attendance.setAttendanceDate(date);
+
+                        // Random tỷ lệ đi học: 85% Có mặt, 15% Vắng mặt (Tỷ lệ này sẽ tạo ra một vài ca bị cấm thi >20%)
+                        boolean isPresent = random.nextInt(100) < 85;
+
+                        if (isPresent) {
+                            attendance.setStatus(AttendanceStatusEnum.PRESENT);
+                        } else {
+                            attendance.setStatus(AttendanceStatusEnum.ABSENT);
+                        }
+                        allAttendances.add(attendance);
+                    }
+                }
+            }
+
+            // Lưu toàn bộ lịch sử điểm danh vào Database
+            attendanceRepo.saveAll(allAttendances);
+            System.out.println("✅ Đã tạo thành công " + allAttendances.size() + " bản ghi Lịch sử Điểm danh trong 8 tuần qua!");
         }
 
     }
