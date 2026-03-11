@@ -30,8 +30,8 @@ public class ClassEntity {
     @Column(name = "academic_year")
     String academicYear;
 
-    @OneToMany(mappedBy = "schoolClass", fetch = FetchType.LAZY)
-    Set<StudentEntity> students = new HashSet<>();
+    @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    Set<UserEntity> students = new HashSet<>();
 
     @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     Set<ScheduleEntity> schedules = new HashSet<>();

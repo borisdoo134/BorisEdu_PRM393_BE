@@ -1,9 +1,12 @@
 package com.borisedu.borisedu.entity;
 
+import com.borisedu.borisedu.utils.enums.GenderEnum;
+import com.borisedu.borisedu.utils.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,7 +30,7 @@ public class UserEntity {
     @Column(nullable = false)
     String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     String email;
 
     @Column(name = "first_name")
@@ -56,6 +59,31 @@ public class UserEntity {
     )
     Set<RoleEntity> roles = new HashSet<>();
 
+    Instant dateOfBirth;
+
+    String address;
+
+    @Enumerated(EnumType.STRING)
+    GenderEnum gender;
+
+    @Enumerated(EnumType.STRING)
+    StatusEnum status;
+
+    String fatherName;
+    String motherName;
+
+    // Học sinh thì thuộc về Lớp nào?
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    ClassEntity schoolClass;
+
+    // QUAN HỆ TỰ CHIẾU (SELF-REFERENCING)
+
+    // 1. Phụ huynh của user này là ai? (Dành cho Học sinh)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    UserEntity parent;
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    Set<StudentEntity> students = new HashSet<>();
+    Set<UserEntity> children = new HashSet<>();
 }

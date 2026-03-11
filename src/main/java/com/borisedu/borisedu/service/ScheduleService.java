@@ -2,10 +2,9 @@ package com.borisedu.borisedu.service;
 
 import com.borisedu.borisedu.dto.response.ScheduleResponse;
 import com.borisedu.borisedu.entity.ScheduleEntity;
-import com.borisedu.borisedu.entity.StudentEntity;
 import com.borisedu.borisedu.entity.UserEntity;
 import com.borisedu.borisedu.repository.ScheduleRepo;
-import com.borisedu.borisedu.repository.StudentRepo;
+import com.borisedu.borisedu.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +15,19 @@ import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
 
-    private final StudentRepo studentRepo;
+    private final UserRepo userRepo;
     private final ScheduleRepo scheduleRepo;
 
     public List<ScheduleResponse> getTimetableByStudentId(Long studentId) {
-        StudentEntity student = studentRepo.findById(studentId)
+        UserEntity student = userRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh với ID: " + studentId));
 
+        // Kiểm tra xem học sinh đã có lớp chưa
         if (student.getSchoolClass() == null) {
             throw new RuntimeException("Học sinh này chưa được xếp lớp!");
         }

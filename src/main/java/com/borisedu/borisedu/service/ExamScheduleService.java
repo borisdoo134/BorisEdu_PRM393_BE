@@ -2,10 +2,10 @@ package com.borisedu.borisedu.service;
 
 import com.borisedu.borisedu.dto.response.ExamScheduleResponse;
 import com.borisedu.borisedu.entity.ExamScheduleEntity;
-import com.borisedu.borisedu.entity.StudentEntity;
+import com.borisedu.borisedu.entity.UserEntity; // Import thêm UserEntity
 import com.borisedu.borisedu.exception.custom.NotFoundException;
 import com.borisedu.borisedu.repository.ExamScheduleRepo;
-import com.borisedu.borisedu.repository.StudentRepo;
+import com.borisedu.borisedu.repository.UserRepo; // Import thêm UserRepo
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExamScheduleService {
 
-    private final StudentRepo studentRepo;
+    private final UserRepo userRepo;
     private final ExamScheduleRepo examScheduleRepo;
 
     public List<ExamScheduleResponse> getExamSchedules(Long studentId, String academicYearFilter) {
-        StudentEntity student = studentRepo.findById(studentId)
+        UserEntity student = userRepo.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy học sinh!"));
 
         if (student.getSchoolClass() == null) {

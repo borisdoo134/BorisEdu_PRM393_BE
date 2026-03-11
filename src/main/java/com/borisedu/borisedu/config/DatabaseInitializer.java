@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 public class DatabaseInitializer  implements CommandLineRunner {
 
     private final UserRepo userRepo;
-    private final StudentRepo studentRepo;
     private final ClassRepo classRepo;
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
@@ -74,17 +73,15 @@ public class DatabaseInitializer  implements CommandLineRunner {
             System.out.println("✅ Đã tạo thành công " + allClasses.size() + " Lớp học!");
         }
 
-        // 3. SINH DỮ LIỆU USER (PHỤ HUYNH, HỌC SINH VÀ GIÁO VIÊN)
+        // 3. SINH DỮ LIỆU USER (PHỤ HUYNH, HỌC SINH VÀ GIÁO VIÊN - ĐƠN BẢNG)
         if (userRepo.count() == 0) {
-            RoleEntity parentRole = roleRepo.findByName(RoleEnum.PARENT)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Role PARENT"));
-            RoleEntity teacherRole = roleRepo.findByName(RoleEnum.TEACHER)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Role TEACHER"));
+            RoleEntity parentRole = roleRepo.findByName(RoleEnum.PARENT).orElseThrow();
+            RoleEntity teacherRole = roleRepo.findByName(RoleEnum.TEACHER).orElseThrow();
+            RoleEntity studentRole = roleRepo.findByName(RoleEnum.STUDENT).orElseThrow(); // Đảm bảo có Role STUDENT
 
             List<ClassEntity> savedClasses = classRepo.findAll();
             Random random = new Random();
 
-            // Bộ từ điển tên Tiếng Việt (Dùng chung cho cả Phụ huynh, Học sinh, Giáo viên)
             String[] hoList = {"Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Vũ", "Đinh", "Đỗ", "Lý", "Bùi"};
             String[] demNamList = {"Văn", "Xuân", "Minh", "Gia", "Đức", "Thành", "Quang", "Hải", "Thanh"};
             String[] demNuList = {"Thị", "Ngọc", "Thu", "Thanh", "Mai", "Hải", "Thùy", "Trúc", "Kim"};
@@ -92,7 +89,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
             String[] tenNuList = {"Linh", "Vy", "Nhi", "Mai", "Hoa", "Yến", "Lan", "Hà", "Tâm", "Cúc"};
             String[] addressList = {"Thanh Mỹ, Sơn Tây", "Quang Trung, Sơn Tây", "Lê Lợi, Sơn Tây", "Ngô Quyền, Sơn Tây", "Phú Thịnh, Sơn Tây"};
 
-            // --- 3.1 TẠO 10 PHỤ HUYNH & 20 HỌC SINH ---
+            // --- 3.1 TẠO 10 PHỤ HUYNH VÀ 20 HỌC SINH ---
             for (int i = 1; i <= 10; i++) {
                 String hoGiaDinh = hoList[random.nextInt(hoList.length)];
                 boolean isFather = random.nextBoolean();
@@ -112,18 +109,29 @@ public class DatabaseInitializer  implements CommandLineRunner {
 
                 UserEntity savedParent = userRepo.save(parent);
 
+                // Tạo 2 Học sinh cho mỗi phụ huynh (Học sinh giờ cũng là UserEntity)
                 for (int j = 1; j <= 2; j++) {
                     boolean isBoy = random.nextBoolean();
                     String demHocSinh = isBoy ? demNamList[random.nextInt(demNamList.length)] : demNuList[random.nextInt(demNuList.length)];
                     String tenHocSinh = isBoy ? tenNamList[random.nextInt(tenNamList.length)] : tenNuList[random.nextInt(tenNuList.length)];
 
-                    StudentEntity student = new StudentEntity();
+                    UserEntity student = new UserEntity();
                     student.setFirstName(tenHocSinh);
                     student.setMiddleName(demHocSinh);
                     student.setLastName(hoGiaDinh);
+
+                    // Cấp tài khoản cho Học sinh đăng nhập app
+                    int studentIndex = (i * 10) + j;
+                    student.setUsername("hocsinh" + studentIndex);
+                    student.setPassword(passwordEncoder.encode("123456"));
+                    student.getRoles().add(studentRole);
+
+                    // Các trường thuộc tính riêng của học sinh
                     student.setGender(isBoy ? GenderEnum.MALE : GenderEnum.FEMALE);
                     student.setStatus(StatusEnum.LEARNING);
                     student.setAddress(addressList[random.nextInt(addressList.length)]);
+                    student.setDateOfBirth(Instant.now().minus(365L * (6 + random.nextInt(10)), ChronoUnit.DAYS));
+                    student.setAvatarUrl("https://i.pravatar.cc/150?u=student" + studentIndex);
 
                     String hoNguoiKia = hoList[random.nextInt(hoList.length)];
                     String tenNguoiKia = isFather
@@ -133,19 +141,19 @@ public class DatabaseInitializer  implements CommandLineRunner {
 
                     student.setFatherName(isFather ? tenCuaPhuHuynh : tenNguoiKia);
                     student.setMotherName(isFather ? tenNguoiKia : tenCuaPhuHuynh);
-                    student.setDateOfBirth(Instant.now().minus(365L * (6 + random.nextInt(10)), ChronoUnit.DAYS));
-                    student.setAvatarUrl("https://i.pravatar.cc/150?u=student" + (i * 10 + j));
+
+                    // Nối quan hệ Tự chiếu (Self-Referencing) đến Phụ huynh
                     student.setParent(savedParent);
 
                     ClassEntity randomClass = savedClasses.get(random.nextInt(savedClasses.size()));
                     student.setSchoolClass(randomClass);
 
-                    studentRepo.save(student);
+                    userRepo.save(student);
                 }
             }
-            System.out.println("✅ Đã tạo thành công 10 Phụ huynh và 20 Học sinh!");
+            System.out.println("✅ Đã tạo thành công 10 Phụ huynh và 20 Học sinh (Mô hình Đơn Bảng)!");
 
-            // --- 3.2 TẠO 15 GIÁO VIÊN VỚI TÊN THẬT ---
+            // --- 3.2 TẠO 15 GIÁO VIÊN ---
             for (int i = 1; i <= 15; i++) {
                 boolean isMaleTeacher = random.nextBoolean();
                 String hoGv = hoList[random.nextInt(hoList.length)];
@@ -161,13 +169,11 @@ public class DatabaseInitializer  implements CommandLineRunner {
                 teacher.setPhone("09770000" + (i < 10 ? "0" + i : i));
                 teacher.setPassword(passwordEncoder.encode("123456"));
                 teacher.getRoles().add(teacherRole);
-
-                // Set avatar cho giáo viên
                 teacher.setAvatarUrl("https://i.pravatar.cc/150?u=teacher" + i);
 
                 userRepo.save(teacher);
             }
-            System.out.println("✅ Đã tạo thành công 15 Giáo viên với tên thực tế!");
+            System.out.println("✅ Đã tạo thành công 15 Giáo viên!");
         }
 
         // 4. SINH DỮ LIỆU SUBJECT (MÔN HỌC)
@@ -302,9 +308,17 @@ public class DatabaseInitializer  implements CommandLineRunner {
             System.out.println("✅ Đã tạo thành công Lịch thi mẫu cho " + allClasses.size() + " lớp học!");
         }
 
-        // 7. SINH DỮ LIỆU ĐIỂM DANH (ATTENDANCE)
+        // 7. SINH DỮ LIỆU ĐIỂM DANH (ATTENDANCE) - ĐÃ CẬP NHẬT CHO ĐƠN BẢNG
         if (attendanceRepo.count() == 0) {
-            List<StudentEntity> allStudents = studentRepo.findAll();
+            // Lấy Role STUDENT ra để lọc
+            RoleEntity studentRole = roleRepo.findByName(RoleEnum.STUDENT)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Role STUDENT"));
+
+            // Lấy danh sách Học sinh từ bảng users (Lọc theo Role)
+            List<UserEntity> allStudents = userRepo.findAll().stream()
+                    .filter(u -> u.getRoles().contains(studentRole))
+                    .collect(Collectors.toList());
+
             List<ScheduleEntity> allSchedules = scheduleRepo.findAll();
             List<AttendanceEntity> allAttendances = new ArrayList<>();
             Random random = new Random();
@@ -317,7 +331,8 @@ public class DatabaseInitializer  implements CommandLineRunner {
             Map<Long, List<ScheduleEntity>> schedulesByClass = allSchedules.stream()
                     .collect(Collectors.groupingBy(s -> s.getSchoolClass().getId()));
 
-            for (StudentEntity student : allStudents) {
+            // Đổi StudentEntity thành UserEntity
+            for (UserEntity student : allStudents) {
                 if (student.getSchoolClass() == null) continue;
 
                 List<ScheduleEntity> classSchedules = schedulesByClass.get(student.getSchoolClass().getId());
@@ -337,7 +352,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
                     // Tạo bản ghi điểm danh cho từng tiết học
                     for (ScheduleEntity schedule : schedulesToday) {
                         AttendanceEntity attendance = new AttendanceEntity();
-                        attendance.setStudent(student);
+                        attendance.setStudent(student); // student lúc này là UserEntity
                         attendance.setSchedule(schedule);
                         attendance.setAttendanceDate(date);
 
@@ -356,9 +371,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
 
             // Lưu toàn bộ lịch sử điểm danh vào Database
             attendanceRepo.saveAll(allAttendances);
-            System.out.println("✅ Đã tạo thành công " + allAttendances.size() + " bản ghi Lịch sử Điểm danh trong 8 tuần qua!");
+            System.out.println("✅ Đã tạo thành công " + allAttendances.size() + " bản ghi Lịch sử Điểm danh trong 8 tuần qua (Kiến trúc Đơn bảng)!");
         }
-
     }
-
 }
