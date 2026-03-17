@@ -13,6 +13,7 @@ public class AttendanceOverviewResponse {
     Long subjectId;
     String subjectName;
     String className;
+    String academicYear;
 
     int presentCount;
     int absentCount;

@@ -12,4 +12,6 @@ import java.util.List;
 public interface ScheduleRepo extends JpaSpecificationRepository<ScheduleEntity, Long> {
     @Query("SELECT s FROM ScheduleEntity s JOIN FETCH s.subject WHERE s.schoolClass.id = :classId ORDER BY s.dayOfWeek ASC, s.period ASC")
     List<ScheduleEntity> findByClassId(@Param("classId") Long classId);
+    int countBySchoolClassIdAndSubjectId(Long classId, Long subjectId);
+    List<ScheduleEntity> findBySchoolClassIdAndSubjectId(Long classId, Long subjectId);
 }

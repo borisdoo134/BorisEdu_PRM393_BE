@@ -350,14 +350,25 @@ public class DatabaseInitializer  implements CommandLineRunner {
                             .collect(Collectors.toList());
 
                     // Tạo bản ghi điểm danh cho từng tiết học
+                    // Tạo bản ghi điểm danh cho từng tiết học
                     for (ScheduleEntity schedule : schedulesToday) {
                         AttendanceEntity attendance = new AttendanceEntity();
                         attendance.setStudent(student); // student lúc này là UserEntity
                         attendance.setSchedule(schedule);
                         attendance.setAttendanceDate(date);
 
-                        // Random tỷ lệ đi học: 85% Có mặt, 15% Vắng mặt (Tỷ lệ này sẽ tạo ra một vài ca bị cấm thi >20%)
-                        boolean isPresent = random.nextInt(100) < 85;
+                        boolean isPresent;
+
+                        // ==========================================
+                        // TẠO HỌC SINH CÁ BIỆT ĐỂ TEST CẤM THI
+                        // ==========================================
+                        if (student.getUsername().equals("hocsinh11")) {
+                            // Cậu bé hocsinh11 này sẽ cúp học 95% số tiết của TẤT CẢ các môn
+                            isPresent = random.nextInt(100) < 5;
+                        } else {
+                            // Các học sinh khác vẫn đi học chăm chỉ (85% có mặt)
+                            isPresent = random.nextInt(100) < 85;
+                        }
 
                         if (isPresent) {
                             attendance.setStatus(AttendanceStatusEnum.PRESENT);
