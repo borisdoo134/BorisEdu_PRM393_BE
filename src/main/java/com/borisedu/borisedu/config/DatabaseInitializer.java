@@ -31,6 +31,8 @@ public class DatabaseInitializer  implements CommandLineRunner {
     private final SubjectRepo subjectRepo;
     private final ExamScheduleRepo examScheduleRepo;
     private final AttendanceRepo attendanceRepo;
+    private final ScoreTypeRepo scoreTypeRepo;
+    private final ScoreRepo scoreRepo;
 
 
     @Override
@@ -384,5 +386,94 @@ public class DatabaseInitializer  implements CommandLineRunner {
             attendanceRepo.saveAll(allAttendances);
             System.out.println("✅ Đã tạo thành công " + allAttendances.size() + " bản ghi Lịch sử Điểm danh trong 8 tuần qua (Kiến trúc Đơn bảng)!");
         }
+
+        // 8. TẠO LOẠI ĐIỂM (SCORE TYPES)
+        // ==========================================
+        if (scoreTypeRepo.count() == 0) {
+            scoreTypeRepo.save(ScoreTypeEntity.builder().name("Đánh giá thường xuyên").code("DGTX").coefficient(1).build());
+            scoreTypeRepo.save(ScoreTypeEntity.builder().name("Đánh giá giữa kỳ").code("DGGK").coefficient(2).build());
+            scoreTypeRepo.save(ScoreTypeEntity.builder().name("Đánh giá cuối kỳ").code("DGCK").coefficient(3).build());
+            System.out.println("✅ Đã tạo 3 loại điểm chuẩn của Bộ GD (ĐGTX, ĐGGK, ĐGCK)!");
+        }
+
+        // ==========================================
+        // 9. SINH DỮ LIỆU ĐIỂM CHO HỌC SINH
+        // ==========================================
+        if (scoreRepo.count() == 0) {
+            ScoreTypeEntity dgtx = scoreTypeRepo.findByCode("DGTX").orElseThrow();
+            ScoreTypeEntity dggk = scoreTypeRepo.findByCode("DGGK").orElseThrow();
+            ScoreTypeEntity dgck = scoreTypeRepo.findByCode("DGCK").orElseThrow();
+
+            RoleEntity studentRole = roleRepo.findByName(RoleEnum.STUDENT).orElseThrow();
+            List<UserEntity> allStudents = userRepo.findAll().stream()
+                    .filter(u -> u.getRoles().contains(studentRole))
+                    .collect(Collectors.toList());
+            List<ScheduleEntity> allSchedules = scheduleRepo.findAll();
+
+            List<ScoreEntity> allScores = new ArrayList<>();
+            Random random = new Random();
+
+            for (UserEntity student : allStudents) {
+                if (student.getSchoolClass() == null) continue;
+
+                // Lấy danh sách các môn học của bé này (thông qua Thời khóa biểu của lớp)
+                List<SubjectEntity> mySubjects = allSchedules.stream()
+                        .filter(s -> s.getSchoolClass().getId().equals(student.getSchoolClass().getId()))
+                        .map(ScheduleEntity::getSubject)
+                        .distinct()
+                        .collect(Collectors.toList());
+
+                // Năm học giả định hiện tại
+                String currentYear = student.getSchoolClass().getAcademicYear();
+                if (currentYear == null) currentYear = "2025-2026";
+
+                for (SubjectEntity subject : mySubjects) {
+
+                    // --- HỌC KỲ 1 ---
+                    // 3 cột Thường xuyên
+                    for (int i = 1; i <= 3; i++) {
+                        allScores.add(createScoreRecord(student, subject, dgtx, randomScore(random), 1, currentYear));
+                    }
+                    // 1 cột Giữa kỳ & 1 cột Cuối kỳ
+                    allScores.add(createScoreRecord(student, subject, dggk, randomScore(random), 1, currentYear));
+                    allScores.add(createScoreRecord(student, subject, dgck, randomScore(random), 1, currentYear));
+
+                    // --- HỌC KỲ 2 ---
+                    // 3 cột Thường xuyên
+                    for (int i = 1; i <= 3; i++) {
+                        allScores.add(createScoreRecord(student, subject, dgtx, randomScore(random), 2, currentYear));
+                    }
+                    // 1 cột Giữa kỳ
+                    allScores.add(createScoreRecord(student, subject, dggk, randomScore(random), 2, currentYear));
+
+                    // Giả sử hiện tại đang là giữa Học kỳ 2, nên chỉ có "hocsinh11" là có điểm Cuối kỳ 2 (để bạn test),
+                    // còn các bạn khác chưa thi cuối kỳ.
+                    if (student.getUsername().equals("hocsinh11")) {
+                        allScores.add(createScoreRecord(student, subject, dgck, randomScore(random), 2, currentYear));
+                    }
+                }
+            }
+            scoreRepo.saveAll(allScores);
+            System.out.println("✅ Đã tạo thành công hàng ngàn con điểm cho toàn bộ Học sinh!");
+        }
+    }
+
+    // Hàm sinh điểm ngẫu nhiên từ 5.0 đến 10.0 (Làm tròn 1 chữ số thập phân)
+    private Double randomScore(Random random) {
+        double score = 5.0 + (random.nextDouble() * 5.0);
+        return (double) Math.round(score * 10) / 10.0;
+    }
+
+    // Hàm build Object ScoreEntity cho code ở trên gọn gàng
+    private ScoreEntity createScoreRecord(UserEntity student, SubjectEntity subject, ScoreTypeEntity type, Double score, int semester, String year) {
+        return ScoreEntity.builder()
+                .student(student)
+                .subject(subject)
+                .scoreType(type)
+                .scoreValue(score)
+                .semester(semester)
+                .academicYear(year)
+                .entryDate(LocalDate.now())
+                .build();
     }
 }
