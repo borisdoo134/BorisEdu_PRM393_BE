@@ -2,6 +2,7 @@ package com.borisedu.borisedu.entity;
 
 import com.borisedu.borisedu.utils.enums.GenderEnum;
 import com.borisedu.borisedu.utils.enums.StatusEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -77,6 +78,11 @@ public class UserEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
     ClassEntity schoolClass;
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
+    @ToString.Exclude
+    OTPEntity otpEntity;
 
     // QUAN HỆ TỰ CHIẾU (SELF-REFERENCING)
 

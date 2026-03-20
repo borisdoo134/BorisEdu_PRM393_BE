@@ -13,4 +13,6 @@ public interface UserRepo extends JpaSpecificationRepository<UserEntity, Long> {
 
     @EntityGraph(attributePaths = {"children", "children.schoolClass"})
     Optional<UserEntity> findByPhone(String phone);
+    Optional<UserEntity> findByOtpEntity_Code(String code);
+
 }

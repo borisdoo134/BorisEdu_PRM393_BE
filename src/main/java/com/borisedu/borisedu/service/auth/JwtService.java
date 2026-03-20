@@ -9,6 +9,11 @@ import com.borisedu.borisedu.utils.BuildResponse;
 import com.borisedu.borisedu.utils.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +30,14 @@ public class JwtService {
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
 
-    public String createJWTToken(String email, Long userId, Long expireTime) {
+    public String createJWTToken(String phone, Long userId, Long expireTime) {
         Instant now = Instant.now();
         Instant expireAt = now.plusSeconds(expireTime);
 
         JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
                 .issuedAt(now)
                 .expiresAt(expireAt)
-                .subject(email)
+                .subject(phone)
                 .claim("userId", userId)
                 .build();
 
@@ -40,52 +45,52 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, jwtClaimsSet)).getTokenValue();
     }
 
-    public LoginResponse letRefreshToken(String refreshToken) {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
-                .withSecretKey(securityUtil.getSecretKey())
-                .macAlgorithm(securityUtil.JWT_ALGORITHMS)
-                .build();
-
-        try {
-            Jwt jwt = jwtDecoder.decode(refreshToken);
-            String phone = jwt.getSubject();
-            Long userId = jwt.getClaim("userId");
-
-            UserEntity userEntity = userRepo.findByPhone(phone)
-                    .orElseThrow(() -> new AccountException("User not found!"));
-            UserResponse userResponse = modelMapper.map(userEntity, UserResponse.class);
-
-            String accessToken = createJWTToken(phone, userId, securityUtil.accessTokenExpiration);
-            String newRefreshToken = createJWTToken(phone, userId, securityUtil.refreshTokenExpiration);
-            Instant now = Instant.now();
-            Instant expireAt = now.plusSeconds(securityUtil.accessTokenExpiration);
-
-            userEntity.setRefreshToken(newRefreshToken);
-            userRepo.save(userEntity);
-
-            return BuildResponse.buildLoginResponse(userResponse, accessToken, expireAt, refreshToken);
-
-        } catch (Exception e) {
-            throw new InvalidTokenException("Refresh token is invalid!");
-        }
-    }
-
-//    public static Optional<String> extractUsernameFromToken() {
-//        SecurityContext securityContext = SecurityContextHolder.getContext();
-//        Authentication authentication = securityContext.getAuthentication();
+//    public LoginResponse letRefreshToken(String refreshToken) {
+//        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
+//                .withSecretKey(securityUtil.getSecretKey())
+//                .macAlgorithm(securityUtil.JWT_ALGORITHMS)
+//                .build();
 //
-//        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-//            return Optional.empty();
-//        } else if (authentication.getPrincipal() instanceof UserDetails userDetails) {
-//            return Optional.ofNullable(userDetails.getUsername());
-//        } else if (authentication.getPrincipal() instanceof Jwt jwt) {
-//            return Optional.ofNullable(jwt.getSubject());
-//        } else if (authentication.getPrincipal() instanceof String username) {
-//            return Optional.of(username);
-//        } else {
-//            return Optional.empty();
+//        try {
+//            Jwt jwt = jwtDecoder.decode(refreshToken);
+//            String phone = jwt.getSubject();
+//            Long userId = jwt.getClaim("userId");
+//
+//            UserEntity userEntity = userRepo.findByPhone(phone)
+//                    .orElseThrow(() -> new AccountException("User not found!"));
+//            UserResponse userResponse = modelMapper.map(userEntity, UserResponse.class);
+//
+//            String accessToken = createJWTToken(phone, userId, securityUtil.accessTokenExpiration);
+//            String newRefreshToken = createJWTToken(phone, userId, securityUtil.refreshTokenExpiration);
+//            Instant now = Instant.now();
+//            Instant expireAt = now.plusSeconds(securityUtil.accessTokenExpiration);
+//
+//            userEntity.setRefreshToken(newRefreshToken);
+//            userRepo.save(userEntity);
+//
+//            return BuildResponse.buildLoginResponse(userResponse, accessToken, expireAt, refreshToken);
+//
+//        } catch (Exception e) {
+//            throw new InvalidTokenException("Refresh token is invalid!");
 //        }
 //    }
+
+    public static Optional<String> extractUsernameFromToken() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
+
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        } else if (authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return Optional.ofNullable(userDetails.getUsername());
+        } else if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return Optional.ofNullable(jwt.getSubject());
+        } else if (authentication.getPrincipal() instanceof String username) {
+            return Optional.of(username);
+        } else {
+            return Optional.empty();
+        }
+    }
 
     public Jwt decodeToken(String token) {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder

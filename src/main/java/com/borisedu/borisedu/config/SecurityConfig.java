@@ -27,8 +27,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.NotActiveException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -40,10 +45,8 @@ public class SecurityConfig {
             "/api/v1/auth/**",
             "/storage/**",
             "/api/v1/files",
-            "/api/v1/user/register-request",
-            "/api/v1/user/request-reset-password",
-            "/api/v1/user/reset-password",
-            "/api/v1/user/active/**",
+            "/api/v1/users/request-reset-password",
+            "/api/v1/users/reset-password",
             "/api/v1/otp/**",
     };
 
@@ -128,5 +131,29 @@ public class SecurityConfig {
                     .authorities(authorities)
                     .build();
         };
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Cho phép mọi origin (bao gồm Flutter Web trên localhost)
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        // Cho phép các HTTP method cần thiết
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Cho phép mọi header
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Cho phép gửi credentials (Authorization header, cookies...)
+        configuration.setAllowCredentials(true);
+
+        // Cache preflight request trong 1 giờ
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

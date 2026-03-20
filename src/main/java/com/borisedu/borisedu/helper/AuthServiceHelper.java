@@ -43,7 +43,7 @@ public class AuthServiceHelper {
         return authentication.getName();
     }
 
-    public LoginResponse createLoginResponse(UserEntity userEntity, String email) {
+    public LoginResponse createLoginResponse(UserEntity userEntity, String phone) {
         UserResponse userResponse = modelMapper.map(userEntity, UserResponse.class);
         Set<RoleResponse> roleResponses = userEntity.getRoles().stream()
                 .map(role -> {
@@ -54,8 +54,8 @@ public class AuthServiceHelper {
                 })
                 .collect(Collectors.toSet());
         userResponse.setRoles(roleResponses);
-        String accessToken = jwtService.createJWTToken(email, userEntity.getId(), securityUtil.accessTokenExpiration);
-        String refreshToken = jwtService.createJWTToken(email,  userResponse.getId(), securityUtil.refreshTokenExpiration);
+        String accessToken = jwtService.createJWTToken(phone, userEntity.getId(), securityUtil.accessTokenExpiration);
+        String refreshToken = jwtService.createJWTToken(phone,  userResponse.getId(), securityUtil.refreshTokenExpiration);
 
         userEntity.setRefreshToken(refreshToken);
         UserEntity newAccount = userRepo.save(userEntity);
