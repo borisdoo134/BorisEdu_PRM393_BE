@@ -104,7 +104,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
                 parent.setLastName(hoGiaDinh);
                 parent.setUsername("phuhuynh" + i);
                 parent.setEmail("phuhuynh" + i + "@gmail.com");
-                parent.setPhone("09870000" + (i < 10 ? "0" + i : i));
+                parent.setPhone("03794800" + (i < 10 ? "6" + i : i));
                 parent.setPassword(passwordEncoder.encode("123456"));
                 parent.getRoles().add(parentRole);
                 parent.setAvatarUrl("https://i.pravatar.cc/150?u=parent" + i);
