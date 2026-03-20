@@ -15,6 +15,7 @@ public class ScoreTypeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "score_type_id")
     Long id;
 
     // Tên loại điểm (VD: "Đánh giá thường xuyên", "Đánh giá giữa kỳ")

@@ -18,6 +18,7 @@ public class ScoreEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "score_id")
     Long id;
 
     // 1. Điểm của ai? (Trỏ về bảng users, vì Học sinh giờ là UserEntity)

@@ -20,6 +20,7 @@ public class LeaveRequestEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "leave_request_id")
     Long id;
 
     // Phụ huynh làm đơn

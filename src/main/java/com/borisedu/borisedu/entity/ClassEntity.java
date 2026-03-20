@@ -19,6 +19,7 @@ public class ClassEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "class_id")
     Long id;
 
     @Column(name = "class_name", nullable = false)

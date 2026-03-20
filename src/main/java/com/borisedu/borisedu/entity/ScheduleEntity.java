@@ -19,6 +19,7 @@ public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "schedule_id")
     Long id;
 
     @Enumerated(EnumType.STRING)

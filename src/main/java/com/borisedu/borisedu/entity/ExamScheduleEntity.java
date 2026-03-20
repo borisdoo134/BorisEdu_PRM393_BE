@@ -20,6 +20,7 @@ import java.time.LocalTime;
 public class ExamScheduleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "exam_schedule_id")
     Long id;
 
     @Column(name = "exam_type", nullable = false)
