@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class DatabaseInitializer  implements CommandLineRunner {
     private final AttendanceRepo attendanceRepo;
     private final ScoreTypeRepo scoreTypeRepo;
     private final ScoreRepo scoreRepo;
+    private final SystemEventRepo systemEventRepo;
 
 
     @Override
@@ -463,6 +465,35 @@ public class DatabaseInitializer  implements CommandLineRunner {
             }
             scoreRepo.saveAll(allScores);
             System.out.println("✅ Đã tạo thành công hàng ngàn con điểm cho toàn bộ Học sinh!");
+        }
+
+        // TẠO DỮ LIỆU SỰ KIỆN CHO SLIDER VÀ CHI TIẾT
+        if (systemEventRepo.count() == 0) {
+            LocalDateTime now = LocalDateTime.now();
+
+            systemEventRepo.save(SystemEventEntity.builder()
+                    .title("Hội thao chào mừng ngày 26/03")
+                    .imageUrl("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1000")
+                    .content("Nhà trường tổ chức hội thao thường niên cho các khối lớp. Gồm các môn: Bóng đá, Cầu lông, Kéo co...")
+                    .startDate(now.plusDays(2)) // Bắt đầu sau 2 ngày nữa
+                    .endDate(now.plusDays(5))   // Kéo dài 3 ngày
+                    .targetAudience("Toàn thể học sinh cấp 2 và cấp 3 Kiến Vàng")
+                    .termsAndConditions("- Học sinh tham gia cần mặc đồng phục thể dục.\n- Có mặt trước 7h00 sáng tại sân vận động.\n- Quyết định của Ban trọng tài là quyết định cuối cùng.")
+                    .active(true)
+                    .build());
+
+            systemEventRepo.save(SystemEventEntity.builder()
+                    .title("Cuộc thi Rung Chuông Vàng Khối 12")
+                    .imageUrl("https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=1000")
+                    .content("Cuộc thi tri thức cực kỳ hấp dẫn dành riêng cho khối 12 nhằm chuẩn bị kiến thức cho kỳ thi Đại học sắp tới.")
+                    .startDate(LocalDateTime.of(2026, 4, 15, 8, 0)) // Set cứng ngày giờ
+                    .endDate(LocalDateTime.of(2026, 4, 15, 11, 30))
+                    .targetAudience("Chỉ áp dụng cho học sinh Khối 12")
+                    .termsAndConditions("- Cấm mang tài liệu, điện thoại vào khu vực thi.\n- Học sinh bị loại sẽ di chuyển lên khán đài.")
+                    .active(true)
+                    .build());
+
+            System.out.println("✅ Đã tạo thành công Sự kiện (Có đủ Ngày tháng, Đối tượng, Điều khoản)!");
         }
     }
 
