@@ -352,7 +352,6 @@ public class DatabaseInitializer  implements CommandLineRunner {
                             .collect(Collectors.toList());
 
                     // Tạo bản ghi điểm danh cho từng tiết học
-                    // Tạo bản ghi điểm danh cho từng tiết học
                     for (ScheduleEntity schedule : schedulesToday) {
                         AttendanceEntity attendance = new AttendanceEntity();
                         attendance.setStudent(student); // student lúc này là UserEntity
@@ -375,8 +374,17 @@ public class DatabaseInitializer  implements CommandLineRunner {
                         if (isPresent) {
                             attendance.setStatus(AttendanceStatusEnum.PRESENT);
                         } else {
-                            attendance.setStatus(AttendanceStatusEnum.ABSENT);
+                            // ĐÃ SỬA Ở ĐÂY: Thay ABSENT bằng UNEXCUSED_ABSENT (Không phép)
+                            // Trộn thêm logic: 80% vắng không phép, 20% vắng có phép
+                            boolean isExcused = random.nextInt(100) < 20;
+                            if (isExcused) {
+                                attendance.setStatus(AttendanceStatusEnum.EXCUSED_ABSENT);
+                            } else {
+                                attendance.setStatus(AttendanceStatusEnum.UNEXCUSED_ABSENT);
+                            }
                         }
+
+                        // Khai báo mảng allAttendances ở ngoài vòng lặp
                         allAttendances.add(attendance);
                     }
                 }

@@ -1,6 +1,5 @@
 package com.borisedu.borisedu.dto.response;
 
-import com.borisedu.borisedu.utils.enums.LeaveRequestStatusEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,7 +13,5 @@ public class LeaveRequestHistoryResponse {
     private LocalDate fromDate;
     private LocalDate toDate;
     private String reason;
-    private LeaveRequestStatusEnum status;
     private LocalDateTime createdAt;
-    private String teacherNote; // Lời nhắn của giáo viên khi duyệt/từ chối
 }

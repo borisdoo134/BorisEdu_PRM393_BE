@@ -42,14 +42,7 @@ public class LeaveRequestEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     String reason;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    LeaveRequestStatusEnum status;
-
     LocalDateTime createdAt;
-
-    @Column(columnDefinition = "TEXT")
-    String teacherNote;
 
     // Tự động lưu thời gian tạo đơn
     @PrePersist

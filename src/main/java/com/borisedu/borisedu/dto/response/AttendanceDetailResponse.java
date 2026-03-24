@@ -18,11 +18,12 @@ public class AttendanceDetailResponse {
 
     int percentage;
     int presentCount;
-    int absentCount;
+    int excusedAbsentCount;
+    int unexcusedAbsentCount;
     int futureCount;
 
     int totalYearSlots;
-    int maxAbsentAllowed;
+    int maxUnexcusedAllowed;
     boolean isBannedFromExam;
 
     List<AttendanceRecordDto> records;

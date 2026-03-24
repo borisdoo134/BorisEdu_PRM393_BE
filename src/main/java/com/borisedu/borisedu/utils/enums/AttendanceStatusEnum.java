@@ -2,6 +2,7 @@ package com.borisedu.borisedu.utils.enums;
 
 public enum AttendanceStatusEnum {
     PRESENT,
-    ABSENT,
+    EXCUSED_ABSENT,
+    UNEXCUSED_ABSENT,
     FUTURE
 }

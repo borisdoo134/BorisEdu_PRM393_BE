@@ -53,7 +53,6 @@ public class LeaveRequestService {
                 .fromDate(dto.getFromDate())
                 .toDate(dto.getToDate())
                 .reason(dto.getReason())
-                .status(LeaveRequestStatusEnum.PENDING) // <--- Ép cứng trạng thái ở đây
                 .build();
 
         leaveRequestRepo.save(request);
@@ -71,9 +70,7 @@ public class LeaveRequestService {
                 .fromDate(req.getFromDate())
                 .toDate(req.getToDate())
                 .reason(req.getReason())
-                .status(req.getStatus())
                 .createdAt(req.getCreatedAt())
-                .teacherNote(req.getTeacherNote()) // Lấy lời nhắn của giáo viên
                 .build()
         ).collect(Collectors.toList());
     }

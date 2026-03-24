@@ -16,11 +16,12 @@ public class AttendanceOverviewResponse {
     String academicYear;
 
     int presentCount;
-    int absentCount;
+    int excusedAbsentCount;
+    int unexcusedAbsentCount;
     int totalConducted; // Số tiết ĐÃ HỌC đến thời điểm hiện tại (present + absent)
     int percentage;     // Tỷ lệ % có mặt
 
     int totalYearSlots;
-    int maxAbsentAllowed;
+    int maxUnexcusedAllowed;
     boolean isBannedFromExam;
 }
