@@ -3,6 +3,7 @@ package com.borisedu.borisedu.service;
 import com.borisedu.borisedu.dto.request.ChangePasswordRequest;
 import com.borisedu.borisedu.dto.request.PhoneRequest;
 import com.borisedu.borisedu.entity.UserEntity;
+import com.borisedu.borisedu.exception.custom.AccountException;
 import com.borisedu.borisedu.exception.custom.NotFoundException;
 import com.borisedu.borisedu.helper.UserServiceHelper;
 import com.borisedu.borisedu.repository.UserRepo;
@@ -34,6 +35,10 @@ public class UserService {
 
     public Void changePassword(ChangePasswordRequest request) {
         UserEntity currentUser = userServiceHelper.checkIfLogin();
+        boolean isMatchPassword = passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword());
+        if(!isMatchPassword) {
+            throw new AccountException("Mật khẩu cũ không đúng!");
+        }
         currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepo.save(currentUser);
         return null;
